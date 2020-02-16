@@ -1,5 +1,3 @@
-setwd('~/Projects/Divvy')
-
 library(RSocrata)
 library(dplyr)
 library(ggmap)
@@ -37,56 +35,51 @@ raw.df$stop_q <- (raw.df$stop_mins/15) %>% floor
 df <- raw.df %>% select(c("trip_id", "from_station_id", "from_latitude", "from_longitude", "to_latitude", "to_longitude", "start_mins", "stop_mins", "start_q", "stop_q"))
 
 # Load Map Background from Google
-register_google(Sys.getenv('gmaps_key'))
+register_google(Sys.getenv('google_maps_api'))
 
-mapImage <- get_map(location = c(lon = -87.68, lat = 41.9), #c(-88.0, 41.63, -87.4, 42.1),
+mapImage <- get_map(location = c(lon = -87.58, lat = 41.9), #c(-88.0, 41.63, -87.4, 42.1),
                     color = "bw",
                     maptype = "toner-background",
                     source = 'stamen',
                     zoom = 11)
 
-# Set visualization styles
-coord_lims <- coord_map(xlim = c(-87.95, -87.4),
-                        ylim = c(41.68, 42.1))
+# Set plot themes
+themes <- theme(legend.position = c(0.93, 0.16),
+                legend.background = element_blank(),
+                legend.text = element_text(colour = 'white', size=6),
+                legend.title = element_text(color = 'white', size=6.5),
+                axis.title = element_blank(), 
+                axis.text = element_blank()
+                )
+
+label <- labs(fill = "# Rides\nper 15 min")
+
+ann_x <- -87.5
+ann_y <- 42.035
+ann_size <- 9
 
 #######################################################################################
 
-station.counts <- df %>% count(from_station_id, from_latitude, from_longitude, start_q)
-  
 
 # Plot Map
 ggmap(mapImage) +
-  geom_bin2d(data = df[df$start_q == 17*4,], 
-           aes(x=from_longitude, y=from_latitude), 
-           bins=60, alpha=.8) +
-  scale_fill_gradient2(limits=c(0, 200), 
-                       low = 'white',
-                       mid = 'red4',
-                       high = 'red4',
-                       midpoint = 70,
-                       na.value = 'red4')
-
-ggmap(mapImage) +
-  geom_bin2d(data = df[df$start_q == 0*4,], 
+  geom_bin2d(data = df[df$start_q == 16*4,], 
              aes(x=from_longitude, y=from_latitude), 
              bins=60, alpha=.8) +
-  scale_fill_gradientn(colours = c('white', 'white','slateblue4', 'darkcyan', 'yellow2'), 
-                       values = c(0, .01, .02, .5, 1),
+  scale_fill_gradientn(colours = c('white','purple4', 'deeppink3', 'yellow'), 
+                       values = c(0, .03, .5, 1),
                        limits= c(0, 300), 
-                       na.value = 'yellow2')
-
-
-
-
-
-
-
-
-
-  scale_fill_gradientn(colours = c('blue', 'seagreen', 'yellow'),
-                       values = c(0, .25, 1), 
-                       limits=c(2, 1700),
-                       na.value = NA)
-
-
-
+                       na.value = 'yellow2') +
+  themes + label +
+  annotate('text', label = 'Chicago Bike Rentals',  
+           family = 'serif', fontface='bold', size = 9.5, color = 'white', 
+           x = -87.51, y = 42.04) +
+  annotate('text', label = 'Frequency of Divvy bikes checked out\n on a typical summer weekday',  
+           family = 'serif', size = 4, color = 'white', 
+           x = -87.507, y = 42.015) +
+  annotate('text', label = 'Each tile represents a\n12 km wide area at:',  
+         family = 'serif', size = 3, color = 'white', 
+         x = -87.495, y = 41.96) +
+  annotate('text', label = '5:00 PM',  
+           family = 'serif', size = 8, color = 'white', fontface='bold',
+           x = -87.494, y = 41.94)
