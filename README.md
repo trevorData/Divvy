@@ -5,5 +5,7 @@ Each tile is roughly .5 miles by .5 miles. The shading represents the number of 
 ---
 
 Data from https://data.cityofchicago.org/, downloaded with RSocrata
+
 Plots made with dplyr and ggmap
+
 Animation made with ImageMagick
